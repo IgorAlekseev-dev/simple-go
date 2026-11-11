@@ -195,6 +195,19 @@ func (l *Lexer) readNumber() (string, TokenType) {
 	return number, tokType
 }
 
+func (l *Lexer) readString() string {
+	l.getChar()
+	stringLit := ""
+
+	for l.CurrentSymbol != '"' && l.CurrentSymbol != 0 {
+		stringLit += string(l.CurrentSymbol)
+		l.getChar()
+	}
+
+	l.getChar()
+	return stringLit
+}
+
 func (l *Lexer) getToken() Token {
 	l.skipWhitespace()
 	line := l.RowNumber
@@ -283,6 +296,14 @@ func (l *Lexer) getToken() Token {
 			Line:    line,
 			Col:     col,
 		}
+	case '"':
+		str := l.readString()
+		return Token{
+			Type:    TokenStringLit,
+			Literal: str,
+			Line:    line,
+			Col:     col,
+		}
 	case 0:
 		tokType := TokenEOF
 		return Token{
@@ -308,6 +329,7 @@ func main() {
 	func main() {
 	    var a int = 10;
 	    var b float = 3.14;
+		var msg string = "hello";
 	}`)
 
 	fmt.Println("Лексема:     | Тип: | Значение: | Строка: | Позиция:")
