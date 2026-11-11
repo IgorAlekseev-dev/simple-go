@@ -174,6 +174,27 @@ func (l *Lexer) readIdentifier() string {
 	return word
 }
 
+func (l *Lexer) readNumber() (string, TokenType) {
+	tokType := TokenIntLit
+	number := ""
+
+	for isDigit(l.CurrentSymbol) {
+		number += string(l.CurrentSymbol)
+		l.getChar()
+	}
+	if l.CurrentSymbol == '.' && isDigit(l.peekChar()) {
+		tokType = TokenFloatLit
+		number += "."
+		l.getChar()
+		for isDigit(l.CurrentSymbol) {
+			number += string(l.CurrentSymbol)
+			l.getChar()
+		}
+	}
+
+	return number, tokType
+}
+
 func (l *Lexer) getToken() Token {
 	l.skipWhitespace()
 	line := l.RowNumber
@@ -188,7 +209,16 @@ func (l *Lexer) getToken() Token {
 			Line:    line,
 			Col:     col,
 		}
+	} else if isDigit(l.CurrentSymbol) {
+		number, tokType := l.readNumber()
+		return Token{
+			Type:    tokType,
+			Literal: number,
+			Line:    line,
+			Col:     col,
+		}
 	}
+
 	switch l.CurrentSymbol {
 	case '(':
 		tokType := TokenLParen
@@ -235,6 +265,24 @@ func (l *Lexer) getToken() Token {
 			Line:    line,
 			Col:     col,
 		}
+	case '=':
+		if l.peekChar() == '=' {
+			l.getChar()
+			l.getChar()
+			return Token{
+				Type:    TokenEqual,
+				Literal: "==",
+				Line:    line,
+				Col:     col,
+			}
+		}
+		l.getChar()
+		return Token{
+			Type:    TokenAssign,
+			Literal: "=",
+			Line:    line,
+			Col:     col,
+		}
 	case 0:
 		tokType := TokenEOF
 		return Token{
@@ -243,12 +291,24 @@ func (l *Lexer) getToken() Token {
 			Line:    line,
 			Col:     col,
 		}
+	default:
+		badChar := string(l.CurrentSymbol)
+		l.getChar()
+		return Token{
+			Type:    TokenIllegal,
+			Literal: badChar,
+			Line:    line,
+			Col:     col,
+		}
 	}
-	return Token{}
 }
 
 func main() {
-	lexer := NewLexer("package main\nfunc main(){}")
+	lexer := NewLexer(`package main
+	func main() {
+	    var a int = 10;
+	    var b float = 3.14;
+	}`)
 
 	fmt.Println("Лексема:     | Тип: | Значение: | Строка: | Позиция:")
 	for {
