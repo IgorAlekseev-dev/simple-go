@@ -91,14 +91,6 @@ type Token struct {
 
 var comment bool = false
 
-type Lexer struct {
-	SourceProgram string // Исходный текст программы
-	Index         int
-	RowNumber     int // Номер строки
-	RowIndex      int // Номер текущего символа
-	CurrentSymbol byte
-}
-
 func isDigit(ch byte) bool {
 	return ch >= '0' && ch <= '9'
 }
@@ -107,8 +99,35 @@ func isLetter(ch byte) bool {
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_'
 }
 
+func evaluate(ident string) TokenType {
+	if tokenType, ok := keywords[ident]; ok {
+		return tokenType
+	}
+	return TokenIdent
+}
+
+type Lexer struct {
+	SourceProgram string // Исходный текст программы
+	Index         int    // Индекс текущего символа в коде
+	RowNumber     int    // Номер строки
+	RowIndex      int    // Номер текущего символа в строке
+	CurrentSymbol byte   // Текущий символ
+}
+
+func NewLexer(source string) *Lexer {
+	l := &Lexer{
+		SourceProgram: source,
+		Index:         0,
+		RowNumber:     1,
+		RowIndex:      0,
+	}
+	l.getChar()
+	return l
+}
+
 func (l *Lexer) getChar() byte {
 	if l.Index >= len(l.SourceProgram) {
+		l.CurrentSymbol = 0
 		return 0
 	}
 
@@ -132,39 +151,111 @@ func (l *Lexer) peekChar() byte {
 		return 0
 	}
 
-	ch := l.SourceProgram[l.Index+1]
-
-	if ch == '\n' {
-		l.RowNumber++
-		l.RowIndex = 0
-	} else {
-		l.RowIndex++
-	}
-
-	l.CurrentSymbol = ch
-
-	return l.CurrentSymbol
+	return l.SourceProgram[l.Index]
 }
 
-func evaluate(ident string) TokenType {
-	if tokenType, ok := keywords[ident]; ok {
-		return tokenType
+func (l *Lexer) skipWhitespace() {
+	for l.CurrentSymbol == ' ' ||
+		l.CurrentSymbol == '\t' ||
+		l.CurrentSymbol == '\n' ||
+		l.CurrentSymbol == '\r' {
+		l.getChar()
 	}
-	return TokenIdent
+}
+
+func (l *Lexer) readIdentifier() string {
+	var word string
+
+	for isLetter(l.CurrentSymbol) || isDigit(l.CurrentSymbol) {
+		word += string(l.CurrentSymbol)
+		l.getChar()
+	}
+
+	return word
+}
+
+func (l *Lexer) getToken() Token {
+	l.skipWhitespace()
+	line := l.RowNumber
+	col := l.RowIndex
+
+	if isLetter(l.CurrentSymbol) {
+		literal := l.readIdentifier()
+		tokType := evaluate(literal)
+		return Token{
+			Type:    tokType,
+			Literal: literal,
+			Line:    line,
+			Col:     col,
+		}
+	}
+	switch l.CurrentSymbol {
+	case '(':
+		tokType := TokenLParen
+		l.getChar()
+		return Token{
+			Type:    tokType,
+			Literal: "(",
+			Line:    line,
+			Col:     col,
+		}
+	case ')':
+		tokType := TokenRParen
+		l.getChar()
+		return Token{
+			Type:    tokType,
+			Literal: ")",
+			Line:    line,
+			Col:     col,
+		}
+	case '{':
+		tokType := TokenLBrace
+		l.getChar()
+		return Token{
+			Type:    tokType,
+			Literal: "{",
+			Line:    line,
+			Col:     col,
+		}
+	case '}':
+		tokType := TokenRBrace
+		l.getChar()
+		return Token{
+			Type:    tokType,
+			Literal: "}",
+			Line:    line,
+			Col:     col,
+		}
+	case ';':
+		tokType := TokenSemicolon
+		l.getChar()
+		return Token{
+			Type:    tokType,
+			Literal: ";",
+			Line:    line,
+			Col:     col,
+		}
+	case 0:
+		tokType := TokenEOF
+		return Token{
+			Type:    tokType,
+			Literal: "EOF",
+			Line:    line,
+			Col:     col,
+		}
+	}
+	return Token{}
 }
 
 func main() {
-	lexer := Lexer{
-		SourceProgram: "package main\nfunc main(){}",
-		RowNumber:     1,
-	}
+	lexer := NewLexer("package main\nfunc main(){}")
 
+	fmt.Println("Лексема:     | Тип: | Значение: | Строка: | Позиция:")
 	for {
-		ch := lexer.getChar()
-
-		if ch == 0 {
+		tok := lexer.getToken()
+		fmt.Printf("%-12s | %-4d | %-9d | %-7d | %-8d\n", tok.Literal, tok.Type, tok.Value, tok.Line, tok.Col)
+		if tok.Type == TokenEOF {
 			break
 		}
-		fmt.Printf("Символ %c (строка %d, позиция %d)\n", ch, lexer.RowNumber, lexer.RowIndex)
 	}
 }
