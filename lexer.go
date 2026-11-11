@@ -1,5 +1,7 @@
 package main
 
+import "log"
+
 func isDigit(ch byte) bool {
 	return ch >= '0' && ch <= '9'
 }
@@ -57,11 +59,39 @@ func (l *Lexer) peekChar() byte {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for l.CurrentSymbol == ' ' ||
-		l.CurrentSymbol == '\t' ||
-		l.CurrentSymbol == '\n' ||
-		l.CurrentSymbol == '\r' {
-		l.getChar()
+	for {
+		if l.CurrentSymbol == ' ' ||
+			l.CurrentSymbol == '\t' ||
+			l.CurrentSymbol == '\n' ||
+			l.CurrentSymbol == '\r' {
+			l.getChar()
+			continue
+		}
+		if l.CurrentSymbol == '/' {
+			if l.peekChar() == '/' {
+				l.getChar()
+				l.getChar()
+				for l.CurrentSymbol != '\n' &&
+					l.CurrentSymbol != 0 {
+					l.getChar()
+				}
+				continue
+			} else if l.peekChar() == '*' {
+				l.getChar()
+				l.getChar()
+				for !(l.CurrentSymbol == '*' && l.peekChar() == '/') {
+					if l.CurrentSymbol == 0 {
+						log.Printf("Не закрыт многострочный комментарий. Строка %d, Позиция %d", l.RowNumber, l.RowIndex)
+						break
+					}
+					l.getChar()
+				}
+				l.getChar()
+				l.getChar()
+				continue
+			}
+		}
+		break
 	}
 }
 
