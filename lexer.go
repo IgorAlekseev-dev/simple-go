@@ -206,6 +206,171 @@ func (l *Lexer) getToken() Token {
 			Line:    line,
 			Col:     col,
 		}
+	case '+':
+		if l.peekChar() == '+' {
+			l.getChar()
+			l.getChar()
+			return Token{
+				Type:    TokenInc,
+				Literal: "++",
+				Line:    line,
+				Col:     col,
+			}
+		} else {
+			l.getChar()
+			return Token{
+				Type:    TokenPlus,
+				Literal: "+",
+				Line:    line,
+				Col:     col,
+			}
+		}
+	case '-':
+		if l.peekChar() == '-' {
+			l.getChar()
+			l.getChar()
+			return Token{
+				Type:    TokenDec,
+				Literal: "--",
+				Line:    line,
+				Col:     col,
+			}
+		} else {
+			l.getChar()
+			return Token{
+				Type:    TokenMinus,
+				Literal: "-",
+				Line:    line,
+				Col:     col,
+			}
+		}
+	case '!':
+		if l.peekChar() == '=' {
+			l.getChar()
+			l.getChar()
+			return Token{
+				Type:    TokenNotEqual,
+				Literal: "!=",
+				Line:    line,
+				Col:     col,
+			}
+		} else {
+			l.getChar()
+			return Token{
+				Type:    TokenNot,
+				Literal: "!",
+				Line:    line,
+				Col:     col,
+			}
+		}
+	case '<':
+		if l.peekChar() == '=' {
+			l.getChar()
+			l.getChar()
+			return Token{
+				Type:    TokenLessEq,
+				Literal: "<=",
+				Line:    line,
+				Col:     col,
+			}
+		} else {
+			l.getChar()
+			return Token{
+				Type:    TokenLess,
+				Literal: "<",
+				Line:    line,
+				Col:     col,
+			}
+		}
+	case '>':
+		if l.peekChar() == '=' {
+			l.getChar()
+			l.getChar()
+			return Token{
+				Type:    TokenGreatEq,
+				Literal: ">=",
+				Line:    line,
+				Col:     col,
+			}
+		} else {
+			l.getChar()
+			return Token{
+				Type:    TokenGreat,
+				Literal: ">",
+				Line:    line,
+				Col:     col,
+			}
+		}
+	case '&':
+		if l.peekChar() == '&' {
+			l.getChar()
+			l.getChar()
+			return Token{
+				Type:    TokenAnd,
+				Literal: "&&",
+				Line:    line,
+				Col:     col,
+			}
+		} else {
+			l.getChar()
+			return Token{
+				Type:    TokenIllegal,
+				Literal: "&",
+				Line:    line,
+				Col:     col,
+			}
+		}
+	case '|':
+		if l.peekChar() == '|' {
+			l.getChar()
+			l.getChar()
+			return Token{
+				Type:    TokenOr,
+				Literal: "||",
+				Line:    line,
+				Col:     col,
+			}
+		} else {
+			l.getChar()
+			return Token{
+				Type:    TokenIllegal,
+				Literal: "|",
+				Line:    line,
+				Col:     col,
+			}
+		}
+	case '*':
+		l.getChar()
+		return Token{
+			Type:    TokenStar,
+			Literal: "*",
+			Line:    line,
+			Col:     col,
+		}
+	case '%':
+		l.getChar()
+		return Token{
+			Type:    TokenPercent,
+			Literal: "%",
+			Line:    line,
+			Col:     col,
+		}
+	case ',':
+		l.getChar()
+		return Token{
+			Type:    TokenComma,
+			Literal: ",",
+			Line:    line,
+			Col:     col,
+		}
+	case '/':
+		l.getChar()
+		return Token{
+			Type:    TokenSlash,
+			Literal: "/",
+			Line:    line,
+			Col:     col,
+		}
 	case 0:
 		tokType := TokenEOF
 		return Token{
