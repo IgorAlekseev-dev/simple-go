@@ -1,0 +1,44 @@
+package main
+func main() {
+    // Объявление константы и переменных разных типов
+    const maxVal int = 100;
+    var a, b int;
+    var total float = 0.0;
+    var step float = 2.5.6;
+    var report string = "result";
+    var isReady bool = true;
+    var isError bool = false;
+
+    /* Ввод исходных данных
+        пользователем с клавиатуры */
+    scan(a, b);
+
+    // Инкремент и декремент переменных
+    a++;
+    b--;
+
+    // Проверка условий и вычисления с разными типами
+    if a > b && !isError {
+        total = a * step + (b / 2.0);
+        report = report + "summ";
+    } else {
+        total = (b - a) * step;
+        report = report + "division";
+    };
+
+    // Цикл for из трех частей со счетчиком и шагом i++
+    for i = 0; i < 3; i++ {
+        total = total + i * 1.5;
+    };
+
+    // Проверка сложного логического условия
+    if total >= 50.0 || (isReady && a % 2 == 0) {
+        print(report);
+        println(total);
+    } else {
+        println("value is below edge");
+    };
+
+    print("Complete. Result: ");
+    println(maxVal);
+}

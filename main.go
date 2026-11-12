@@ -2,24 +2,18 @@ package main
 
 import (
 	"fmt"
+	"os"
 )
 
 func main() {
 	symTable := NewSymbolTable()
-	lexer := NewLexer(`package main
-	func main() {
-	    var a int = 10;
-	    var b float = 3.14;
-		var msg string = "hello";
-		a++;
-		// Это первая строчка комментариев
-		b--;
-		if a != 10 && b >= 2.0 {
-			/* А это
-       			многострочный комментарий */
-			msg = "ok"; // комментарий в конце строки
-		}
-	}`, symTable)
+
+	source, err := os.ReadFile("program.sgo")
+	if err != nil {
+		fmt.Println("Ошибка чтения файла:", err)
+		return
+	}
+	lexer := NewLexer(string(source), symTable)
 
 	fmt.Println("Список лексем:")
 	fmt.Println("Лексема:     | Тип: | Значение: | Строка: | Позиция:")
