@@ -11,19 +11,21 @@ func isLetter(ch byte) bool {
 }
 
 type Lexer struct {
-	SourceProgram string // Исходный текст программы
-	Index         int    // Индекс текущего символа в коде
-	RowNumber     int    // Номер строки
-	RowIndex      int    // Номер текущего символа в строке
-	CurrentSymbol byte   // Текущий символ
+	SourceProgram string       // Исходный текст программы
+	Index         int          // Индекс текущего символа в коде
+	RowNumber     int          // Номер строки
+	RowIndex      int          // Номер текущего символа в строке
+	CurrentSymbol byte         // Текущий символ
+	Table         *SymbolTable // Семантическая таблица
 }
 
-func NewLexer(source string) *Lexer {
+func NewLexer(source string, table *SymbolTable) *Lexer {
 	l := &Lexer{
 		SourceProgram: source,
 		Index:         0,
 		RowNumber:     1,
 		RowIndex:      0,
+		Table:         table,
 	}
 	l.getChar()
 	return l
@@ -148,20 +150,26 @@ func (l *Lexer) getToken() Token {
 	if isLetter(l.CurrentSymbol) {
 		literal := l.readIdentifier()
 		tokType := evaluate(literal)
-		return Token{
+		tok := Token{
 			Type:    tokType,
 			Literal: literal,
 			Line:    line,
 			Col:     col,
 		}
+		if tokType == TokenIdent {
+			tok.Value = l.Table.Evaluate(tok)
+		}
+		return tok
 	} else if isDigit(l.CurrentSymbol) {
 		number, tokType := l.readNumber()
-		return Token{
+		tok := Token{
 			Type:    tokType,
 			Literal: number,
 			Line:    line,
 			Col:     col,
 		}
+		tok.Value = l.Table.Evaluate(tok)
+		return tok
 	}
 
 	switch l.CurrentSymbol {
@@ -230,12 +238,14 @@ func (l *Lexer) getToken() Token {
 		}
 	case '"':
 		str := l.readString()
-		return Token{
+		tok := Token{
 			Type:    TokenStringLit,
 			Literal: str,
 			Line:    line,
 			Col:     col,
 		}
+		tok.Value = l.Table.Evaluate(tok)
+		return tok
 	case '+':
 		if l.peekChar() == '+' {
 			l.getChar()
